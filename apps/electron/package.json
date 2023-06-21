@@ -1,0 +1,32 @@
+{
+  "name": "@illusion/electron",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "dev": "tsc && rollup -c rollup.config.ts --configPlugin \"sucrase={transforms: ['typescript']}\" -w",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "hewel",
+  "license": "ISC",
+  "dependencies": {
+    "@illusion/server": "workspace:*"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-commonjs": "^25.0.1",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-sucrase": "^5.0.1",
+    "@types/node": "^20.3.1",
+    "electron": "^25.1.0",
+    "electron-builder": "^23.6.0",
+    "rollup": "^3.25.1",
+    "typescript": "^5.0.4"
+  }
+}

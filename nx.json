@@ -1,0 +1,19 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx-cloud",
+      "options": {
+        "cacheableOperations": ["build", "generate"],
+        "accessToken": "NTlkY2ZlMzktNjg5OC00YTRkLTliMmEtNjNjNGYzNTA2YTkzfHJlYWQtd3JpdGU="
+      }
+    }
+  },
+  "affected": {
+    "defaultBase": "main"
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

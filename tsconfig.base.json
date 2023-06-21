@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@illusion/client/*": ["app/client/src/*"],
+      "@illusion/server/*": ["app/server/src/*"]
+    },
+    "baseUrl": "./"
+  },
+  "exclude": ["node_modules", "tmp"]
+}

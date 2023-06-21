@@ -1,0 +1,51 @@
+{
+  "name": "@illusion/server",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "./src/server.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/server.ts",
+      "import": "./src/server.ts"
+    },
+    "./neodb": "./src/services/neodb/"
+  },
+  "scripts": {
+    "dev": "rollup -c rollup.config.ts --configPlugin \"sucrase={transforms: ['typescript']}\" -w",
+    "build": "rollup -c rollup.config.ts --configPlugin \"sucrase={transforms: ['typescript']}\"",
+    "generate": "pnpx openapi-typescript-codegen --input https://neodb.social/api/openapi.json --output ./src/services/neodb --indent 2 --exportCore false --exportServices false"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-commonjs": "^25.0.1",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-run": "^3.0.1",
+    "@rollup/plugin-sucrase": "^5.0.1",
+    "@rollup/plugin-typescript": "^11.1.1",
+    "@swc/core": "^1.3.63",
+    "@types/node": "^20.3.1",
+    "prisma": "^4.15.0",
+    "rollup": "^3.25.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.3.0",
+    "@fastify/websocket": "^8.1.0",
+    "@prisma/client": "4.15.0",
+    "@trpc/server": "^10.30.0",
+    "dotenv": "^16.3.0",
+    "fastify": "^4.18.0",
+    "fp-ts": "^2.16.0",
+    "got": "^13.0.0",
+    "lowdb": "^6.0.1",
+    "urlcat": "^3.1.0",
+    "wretch": "^2.5.2",
+    "zod": "^3.21.4"
+  }
+}

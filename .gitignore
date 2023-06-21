@@ -1,0 +1,12 @@
+.vscode/**
+!.vscode/extensions.json
+
+node_modules
+dist
+# Keep environment variables out of version control
+*.env*
+schema.prisma.lock
+logs
+pnpm-error.log
+*.db*
+
