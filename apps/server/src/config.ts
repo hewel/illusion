@@ -2,7 +2,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Low } from "lowdb";
 import { JSONFile } from "lowdb/node";
-import { task as T, readonlyRecord as R, either as E } from "fp-ts";
+import {
+	task as T,
+	readonlyRecord as R,
+	either as E,
+	io as I,
+	option as O,
+} from "fp-ts";
 import { pipe } from "fp-ts/function";
 
 import "dotenv/config";
@@ -28,28 +34,19 @@ const defaultConfig: Config = {
 
 export const configDB = new Low(adapter, defaultConfig);
 
-export const configTask = pipe(
-	() => configDB.read(),
-	T.map(() => configDB.data),
-);
+export const configTask = pipe(() => configDB.read());
+
+export const configIO = I.of(configDB.data);
 
 export type ConfigTask = typeof configTask;
 
 export const pickConfig = <K extends keyof Config>(keys: K[]) => {
 	const traverseByKeys = (c: Config) =>
-		R.sequence(E.Applicative)(
-			R.fromEntries(
-				keys.map((key) => [
-					key,
-					E.fromNullable(`${key} in config not find`)(c[key]),
-				]),
-			),
-		) as E.Either<
-			string,
-			{
-				[P in K]-?: NonNullable<Config[P]>;
-			}
-		>;
+		R.sequence(O.Applicative)(
+			R.fromEntries(keys.map((key) => [key, O.fromNullable(c[key])])),
+		) as O.Option<{
+			[P in K]-?: NonNullable<Config[P]>;
+		}>;
 
-	return T.map(traverseByKeys)(configTask);
+	return I.map(traverseByKeys)(configIO);
 };

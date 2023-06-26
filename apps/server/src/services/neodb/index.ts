@@ -1,7 +1,7 @@
-import { taskEither as TE } from "fp-ts";
+import { task as T, taskOption as TO } from "fp-ts";
 import { pipe } from "fp-ts/function";
 import got from "got";
-import { pickConfig, configDB } from "../../config.js";
+import { pickConfig, configDB, configTask } from "../../config.js";
 export { getShelf } from "./shelf.js";
 export { getMovie } from "./getMovie.js";
 
@@ -11,14 +11,17 @@ export const neoDBApi = got.extend({
 	prefixUrl: configDB.data.neoDBUrl,
 	responseType: "json",
 	hooks: {
-		beforeRequest: [
-			async (option) => {
-				await pipe(
-					pickConfig(["neoDBUrl", "neoDBToken"]),
-					TE.tapIO(({ neoDBUrl, neoDBToken }) =>
+		init: [
+			(option) => {
+				pipe(
+					configTask,
+					T.flatMapIO(() => pickConfig(["neoDBUrl", "neoDBToken"])),
+					TO.tapIO(({ neoDBUrl, neoDBToken }) =>
 						() => {
 							option.prefixUrl = neoDBUrl;
-							option.headers["Authorization"] = `Bearer ${neoDBToken}`;
+							option.headers = {
+								Authorization: `Bearer ${neoDBToken}`,
+							};
 						}),
 				)();
 			},

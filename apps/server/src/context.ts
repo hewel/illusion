@@ -1,7 +1,6 @@
 import { inferAsyncReturnType } from "@trpc/server";
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { PrismaClient } from "@prisma/client";
-import { configTask } from "./config.js";
 import { tmdbApi, neoDBApi } from "./services/index.js";
 
 const prisma = new PrismaClient({
@@ -17,7 +16,6 @@ export async function createContext({ req, res }: CreateFastifyContextOptions) {
 		req,
 		res,
 		prisma,
-		config: configTask,
 		tmdbApi,
 		neoDBApi,
 	};
