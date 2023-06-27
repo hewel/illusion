@@ -27,7 +27,7 @@ model MediaType {
 }
 
 model MediaItem {
-  id          Int        @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   title       String
   description String?
   year        Int?
@@ -38,33 +38,35 @@ model MediaItem {
   poster      String?
   backdrop    String?
   libraryId   Int
-  mediaType   MediaType  @relation(fields: [mediaTypeId], references: [id])
+  mediaType   MediaType   @relation(fields: [mediaTypeId], references: [id])
   mediaTypeId Int
   wishlist    Wishlist[]
+  neoDBMark   NeoDBMark[]
   imdb        String
   subtitles   Subtitle[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Tag {
-  id         Int         @id @default(autoincrement())
-  name       String      @unique
-  mediaItems MediaItem[]
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  medias    MediaItem[]
+  neoDBMark NeoDBMark[]
 }
 
 model Genre {
-  id         Int         @id @default(autoincrement())
-  name       String      @unique
-  mediaItems MediaItem[]
+  id     Int         @id @default(autoincrement())
+  name   String      @unique
+  medias MediaItem[]
 }
 
 model Subtitle {
   id           Int       @id @default(autoincrement())
   language     String
   downloadPath String
-  mediaItem    MediaItem @relation(fields: [mediaItemId], references: [id])
-  mediaItemId  Int
+  media        MediaItem @relation(fields: [mediaId], references: [id])
+  mediaId      Int
 }
 
 model Wishlist {
@@ -75,4 +77,18 @@ model Wishlist {
   media     MediaItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model NeoDBMark {
+  id          Int       @id @default(autoincrement())
+  shelfType   String    @map("shelf_type")
+  visibility  Int
+  commentText String?   @map("comment_text")
+  ratingGrade String?   @map("rating_grade")
+  createdTime DateTime  @map("created_time")
+  tags        Tag[]
+  media       MediaItem @relation(fields: [mediaItemId], references: [id])
+  mediaItemId Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
