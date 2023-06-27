@@ -27,7 +27,7 @@ model MediaType {
 }
 
 model MediaItem {
-  id          Int         @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
   description String?
   year        Int?
@@ -38,27 +38,28 @@ model MediaItem {
   poster      String?
   backdrop    String?
   libraryId   Int
-  mediaType   MediaType   @relation(fields: [mediaTypeId], references: [id])
+  mediaType   MediaType    @relation(fields: [mediaTypeId], references: [id])
   mediaTypeId Int
   wishlist    Wishlist[]
-  neoDBMark   NeoDBMark[]
-  imdb        String
+  neoDBMark   NeoDBMark?
+  imdbId      String
+  tmdbDetails TmdbDetails?
   subtitles   Subtitle[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Tag {
   id        Int         @id @default(autoincrement())
   name      String      @unique
-  medias    MediaItem[]
+  mediaList MediaItem[]
   neoDBMark NeoDBMark[]
 }
 
 model Genre {
-  id     Int         @id @default(autoincrement())
-  name   String      @unique
-  medias MediaItem[]
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  mediaList MediaItem[]
 }
 
 model Subtitle {
@@ -88,7 +89,23 @@ model NeoDBMark {
   createdTime DateTime  @map("created_time")
   tags        Tag[]
   media       MediaItem @relation(fields: [mediaItemId], references: [id])
-  mediaItemId Int
+  mediaItemId Int       @unique
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model TmdbDetails {
+  id            Int       @id
+  title         String
+  originalTitle String    @map("original_title")
+  homepage      String
+  overview      String
+  poster        String    @map("poster_path")
+  backdrop      String    @map("backdrop_path")
+  imdbId        String
+  releaseDate   DateTime  @map("release_date")
+  media         MediaItem @relation(fields: [mediaId], references: [id])
+  mediaId       Int       @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

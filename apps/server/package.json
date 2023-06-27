@@ -17,6 +17,9 @@
     "build": "rollup -c rollup.config.ts --configPlugin \"sucrase={transforms: ['typescript']}\"",
     "generate": "pnpx openapi-typescript-codegen --input https://neodb.social/api/openapi.json --output ./src/services/neodb --indent 2 --exportCore false --exportServices false"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
