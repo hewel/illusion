@@ -11,14 +11,18 @@ import {
 import { trpc } from "./App.tsx";
 
 const Users = () => {
-	const wishlist = trpc.getWishlist.useQuery({
-		category: "movie",
-		page: 1,
-	});
+	const syncWishlist = trpc.wishlist.sync.useMutation();
+	// const wishlist = trpc.getPopularMovieList.useQuery();
 
 	return (
 		<div className="card">
-			{wishlist.data?.data?.map(({ item }) => item.title)}
+			<Button
+				onClick={() => syncWishlist.mutate()}
+				loading={syncWishlist.isLoading}
+			>
+				Sync {syncWishlist.status}
+			</Button>
+			{/* {wishlist.status} */}
 		</div>
 	);
 };

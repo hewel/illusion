@@ -8,6 +8,13 @@ const main = async () => {
   await prisma.mediaType.create({
     data: { name: "tv" },
   });
+  await prisma.user.create({
+    data: {
+      account: "admin",
+      name: "admin",
+      passwordHash: "1",
+    },
+  });
 };
 
 main()

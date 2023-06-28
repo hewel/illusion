@@ -1,10 +1,9 @@
 import { taskEither as TE, predicate as P } from "fp-ts";
-import type { Got } from "got";
+import { neoDBApi } from "./neoDBApi.js";
 
 import type { MovieSchema } from "./types.js";
 
 export const getMovie = TE.tryCatchK(
-	(request: Got, uuid: string) =>
-		request.get(`api/movie/${uuid}`).json<MovieSchema>(),
+	(uuid: string) => neoDBApi.get(`api/movie/${uuid}`).json<MovieSchema>(),
 	String,
 );

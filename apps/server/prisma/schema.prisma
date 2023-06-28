@@ -37,12 +37,11 @@ model MediaItem {
   tags        Tag[]
   poster      String?
   backdrop    String?
-  libraryId   Int
   mediaType   MediaType    @relation(fields: [mediaTypeId], references: [id])
   mediaTypeId Int
   wishlist    Wishlist[]
   neoDBMark   NeoDBMark?
-  imdbId      String
+  imdbId      String?      @unique
   tmdbDetails TmdbDetails?
   subtitles   Subtitle[]
   createdAt   DateTime     @default(now())
