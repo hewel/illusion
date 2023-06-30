@@ -15,6 +15,7 @@ import { publicProcedure, router } from "./trpc.js";
 import { handleError } from "./handleError.js";
 import { RightTaskType } from "../types.js";
 import { PrismaClient } from "@prisma/client";
+import { getMediaIDRecord } from "../services/utils.js";
 
 const mergeTmdbInfo = (shelfRes: PagedMarkSchema) => {
 	const getDetail = flow(
@@ -22,15 +23,26 @@ const mergeTmdbInfo = (shelfRes: PagedMarkSchema) => {
 		TE.flatMap(getMovie),
 		TE.bindTo("item"),
 		TE.bind(
+			"externalId",
+			flow(
+				TE.fromNullableK("external_resources not found")(
+					({ item }) => item.external_resources,
+				),
+				TE.map(A.map(({ url }) => url)),
+				TE.flatMap(getMediaIDRecord),
+			),
+		),
+		TE.bind(
 			"detail",
 			flow(
-				({ item }) => item.imdb,
-				TE.fromNullable("imdbid not found"),
+				TE.fromNullableK("imdbid not found")(
+					({ externalId }) => externalId.imdbId,
+				),
 				TE.flatMap((id) => findById({ id, source: "imdb_id" })),
 				TE.flatMap(({ movie_results }) =>
 					TE.fromNullable("result not found")(movie_results?.[0]),
 				),
-				TE.altW(() => TE.of<string, null>(null)),
+				TE.orElseW(() => TE.of<string, null>(null)),
 			),
 		),
 	);
