@@ -3,12 +3,12 @@ import {
 	option as O,
 	taskEither as TE,
 	string as S,
-	console as Console,
 } from "fp-ts";
 import { pipe, flow } from "fp-ts/function";
 import * as cheerio from "cheerio";
 import got from "got";
-import { findById } from "./index.js";
+import { findById } from "./tmdb/findById.js";
+import { MovieSchema } from "./neodb/types.js";
 
 // rome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const url = (url: string, params: Record<string, any>) => {
@@ -25,18 +25,35 @@ export const scraper = got.extend({
 	},
 });
 
-export const getMediaIDRecord = (urlList: string[]) => {
-	const isDouban = flow(S.toLowerCase, S.includes("douban"));
-	const isImdb = flow(S.toLowerCase, S.includes("imdb"));
-	const isTmdb = flow(S.toLowerCase, S.includes("themoviedb"));
+const isDouban = flow(S.toLowerCase, S.includes("douban"));
+const isImdb = flow(S.toLowerCase, S.includes("imdb"));
+const isTmdb = flow(S.toLowerCase, S.includes("themoviedb"));
+export const getMediaIDRecord = (item: MovieSchema) => {
+	const urlList = pipe(
+		item,
+		O.fromNullableK(({ external_resources }) => external_resources),
+		O.map(A.map(({ url }) => url)),
+	);
 
 	const doubanId = pipe(
 		urlList,
-		A.findFirst(isDouban),
+		O.flatMap(A.findFirst(isDouban)),
 		O.bindTo("doubanUrl"),
 		O.bind("doubanId", ({ doubanUrl }) =>
 			O.fromNullable(doubanUrl.match(/\/subject\/(\d+)/)?.[1]),
 		),
+	);
+	const tmdbId = pipe(
+		urlList,
+		O.flatMap(A.findFirst(isTmdb)),
+		O.flatMap((u) => O.fromNullable(u.match(/movie\/(\d+)/)?.[1])),
+		TE.fromOption(() => "tmdb id not found"),
+	);
+	const imdbId = pipe(
+		urlList,
+		O.flatMap(A.findFirst(isImdb)),
+		O.flatMap((u) => O.fromNullable(u.match(/tt\d+/)?.[0])),
+		TE.fromOption(() => "imdb url not found"),
 	);
 
 	const extractId = ($: cheerio.CheerioAPI) =>
@@ -46,10 +63,9 @@ export const getMediaIDRecord = (urlList: string[]) => {
 				.toArray()
 				.find((el) => $(el).text().trim().toLowerCase().includes("imdb")),
 			O.fromNullable,
-			O.flatMap((el) => O.fromNullable(el.nextSibling)),
+			O.flatMap((el) => O.fromNullable(el.next)),
 			O.map((el) => $(el).text().trim()),
 		);
-
 	const getImdbIdFromDouban = pipe(
 		doubanId,
 		TE.fromOption(() => "douban url not found"),
@@ -59,20 +75,23 @@ export const getMediaIDRecord = (urlList: string[]) => {
 		TE.map((buffer) => cheerio.load(buffer)),
 		TE.flatMapOption(extractId, () => "imdb info not found from douban page"),
 	);
-
-	const tmdbId = pipe(
-		urlList,
-		A.findFirst(isTmdb),
-		O.flatMap((u) => O.fromNullable(u.match(/movie\/(\d+)/)?.[1])),
-		TE.fromOption(() => "tmdb id not found"),
-	);
-
-	const imdbId = pipe(
-		urlList,
-		A.findFirst(isImdb),
-		O.flatMap((u) => O.fromNullable(u.match(/tt\d+/)?.[0])),
-		TE.fromOption(() => "imdb url not found"),
-		TE.orElse(() => getImdbIdFromDouban),
+	const getTmdbIdByImdbId = pipe(
+		imdbId,
+		TE.flatMap((id) =>
+			findById({
+				id,
+				source: "imdb_id",
+			}),
+		),
+		TE.flatMapNullable(
+			({ movie_results, tv_results }) =>
+				(movie_results?.length
+					? movie_results
+					: tv_results?.length
+					? tv_results
+					: [])?.[0].id?.toString(),
+			() => "result not found",
+		),
 	);
 
 	return pipe(
@@ -81,7 +100,21 @@ export const getMediaIDRecord = (urlList: string[]) => {
 		O.orElse(() => O.of(null)),
 		O.bindTo("doubanId"),
 		TE.fromOption(() => "douban id not found"),
-		TE.bindW("imdbId", () => TE.orElseW(() => TE.of(null))(imdbId)),
-		TE.bindW("tmdbId", () => TE.orElseW(() => TE.of(null))(tmdbId)),
+		TE.bindW(
+			"imdbId",
+			flow(
+				() => imdbId,
+				TE.orElse(() => getImdbIdFromDouban),
+				TE.orElseW(() => TE.of(null)),
+			),
+		),
+		TE.bindW(
+			"tmdbId",
+			flow(
+				() => tmdbId,
+				TE.orElse(() => getTmdbIdByImdbId),
+				TE.orElseW(() => TE.of(null)),
+			),
+		),
 	);
 };

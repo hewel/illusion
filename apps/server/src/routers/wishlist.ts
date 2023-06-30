@@ -8,7 +8,11 @@ import {
 	PagedMarkSchema,
 	getShelf,
 	getMovie,
+	getTv,
 	findById,
+	ItemSchema,
+	MovieSchema,
+	TVShowSchema,
 } from "../services/index.js";
 
 import { publicProcedure, router } from "./trpc.js";
@@ -19,19 +23,19 @@ import { getMediaIDRecord } from "../services/utils.js";
 
 const mergeTmdbInfo = (shelfRes: PagedMarkSchema) => {
 	const getDetail = flow(
-		TE.fromNullable("uuid not found")<string>,
-		TE.flatMap(getMovie),
-		TE.bindTo("item"),
-		TE.bind(
-			"externalId",
-			flow(
-				TE.fromNullableK("external_resources not found")(
-					({ item }) => item.external_resources,
-				),
-				TE.map(A.map(({ url }) => url)),
-				TE.flatMap(getMediaIDRecord),
-			),
+		TE.fromNullable("item not found")<ItemSchema>,
+		TE.flatMap(
+			({
+				uuid,
+				category,
+			}): TE.TaskEither<string, MovieSchema | TVShowSchema> => {
+				if (category === "movie") return getMovie(uuid);
+				if (category === "tv") return getTv(uuid);
+				return TE.left(`category ${category} not support`);
+			},
 		),
+		TE.bindTo("item"),
+		TE.bind("externalId", ({ item }) => getMediaIDRecord(item)),
 		TE.bind(
 			"detail",
 			flow(
@@ -58,7 +62,7 @@ const mergeTmdbInfo = (shelfRes: PagedMarkSchema) => {
 				TE.flatMap(
 					A.traverse(TE.ApplicativePar)((data) =>
 						pipe(
-							getDetail(data.item.uuid),
+							getDetail(data.item),
 							TE.map((detailData) => ({ ...data, ...detailData })),
 						),
 					),
